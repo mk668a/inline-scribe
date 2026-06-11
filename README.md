@@ -45,6 +45,10 @@ Two more ways to trigger a check, Google-Translate style:
 
 With a selection, only the selected part is checked and replaced — handy for one paragraph of a long email. It even works on text you *can't* edit (someone else's draft on a wiki, say): the corrected version is **copied to your clipboard** instead of written back.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/selection-icon.png" alt="Selected text on a page with the inline-scribe ✎ icon floating next to the selection" width="100%">
+</p>
+
 ### 4. Review each suggestion
 
 A panel opens below the field showing your text with the suggested fixes marked in place, the way Word's Track Changes looks:
@@ -53,6 +57,10 @@ A panel opens below the field showing your text with the suggested fixes marked 
 - text to add → shown in green
 
 For each fix, choose **✓** (accept) or **✕** (keep your wording). Or take everything at once with **Accept all**.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/review-panel.png" alt="An email draft with the inline-scribe review panel below it: four suggestions from llama3.2, deletions struck through in red, insertions in green, ✓/✕ buttons on each" width="100%">
+</p>
 
 ### 5. Press Apply
 
@@ -138,6 +146,10 @@ Right-click the extension icon → **Options**:
   translator, a tone-softener, or a de-corporate-izer — same review workflow.
 - **Selection icon** — untick to turn off the ✎ icon that appears when you select text
   (Alt+G and the right-click menu keep working).
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/options.png" alt="inline-scribe options page: endpoint, model, optional API key, system prompt, and the selection-icon toggle" width="70%">
+</p>
 
 ## Privacy model
 
