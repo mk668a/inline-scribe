@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "inline-scribe",
+  "version": "0.1.0",
+  "description": "Track-Changes for any textarea — corrections from your own local LLM. Nothing leaves your machine.",
+  "permissions": ["storage", "activeTab", "declarativeNetRequest"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "check-text": {
+      "suggested_key": { "default": "Alt+G" },
+      "description": "Proofread the focused text field"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {}
+}

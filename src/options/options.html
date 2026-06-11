@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>inline-scribe options</title>
+    <style>
+      body { font: 14px/1.6 system-ui, sans-serif; max-width: 560px; margin: 32px auto; color: #1a1a2e; }
+      label { display: block; margin: 14px 0 4px; font-weight: 600; }
+      input, textarea { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #c8c8d8; border-radius: 6px; font: inherit; }
+      textarea { height: 96px; }
+      button { margin-top: 16px; padding: 8px 16px; border: none; border-radius: 6px; background: #2741cc; color: #fff; cursor: pointer; }
+      #saved { margin-left: 10px; color: #1b6e2a; }
+      .hint { color: #6b6b80; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>inline-scribe</h1>
+    <p class="hint">
+      Bring your own inference: an OpenAI-compatible endpoint you run or pay for yourself
+      (Ollama, llama.cpp, LM Studio, vLLM…). The default talks to a local Ollama.
+      The maintainer never pays — and never sees — your text.
+    </p>
+    <label for="endpoint">Endpoint</label>
+    <input id="endpoint" placeholder="http://127.0.0.1:11434/v1" />
+    <label for="model">Model</label>
+    <input id="model" placeholder="llama3.2" />
+    <label for="apiKey">API key (optional — only for non-local endpoints)</label>
+    <input id="apiKey" type="password" />
+    <label for="systemPrompt">System prompt</label>
+    <textarea id="systemPrompt"></textarea>
+    <button id="save">Save</button><span id="saved"></span>
+    <script src="options.js"></script>
+  </body>
+</html>

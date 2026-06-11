@@ -1,0 +1,26 @@
+{
+  "name": "inline-scribe",
+  "version": "0.1.0",
+  "description": "Track-Changes for any textarea — corrections from your own local LLM, accepted one hunk at a time. Nothing leaves your machine.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "node build.mjs",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  }
+}
