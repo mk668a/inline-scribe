@@ -51,12 +51,15 @@ translator or tone-softener with the same review UI.
 Open source (MIT): https://github.com/mk668a/inline-scribe
 ```
 
-## Screenshots (1280×800 or 640×400, 1-5 images)
+## Screenshots (must be exactly 1280×800 or 640×400)
 
-1. Hero: typo'd email in a textarea + review panel with red/green hunks (re-crop `docs/screenshot.png` to 1280×800)
-2. The ✎ selection icon next to selected text
-3. Right-click menu showing "Proofread selection — inline-scribe"
-4. Options page (endpoint/model/system prompt)
+Ready to upload in `docs/store/` (all exactly 1280×800):
+
+1. `screenshot-1-review.png` — typo'd email + review panel with red/green hunks (real llama3.2 output)
+2. `screenshot-2-selection.png` — the ✎ icon next to selected text
+3. `screenshot-3-options.png` — options page
+
+> The store rejects any other size with 「画像のサイズが正しくありません」 — don't upload `docs/screenshot.png` (1000×700, README hero only).
 
 ## Privacy tab answers
 
