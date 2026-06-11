@@ -1,7 +1,7 @@
 {
   "name": "inline-scribe",
-  "version": "0.1.0",
-  "description": "Track-Changes for any textarea — corrections from your own local LLM, accepted one hunk at a time. Nothing leaves your machine.",
+  "version": "0.2.0",
+  "description": "Chrome extension that proofreads what you write in the browser using a local AI (Ollama). Accept or reject each fix one by one. Nothing leaves your machine.",
   "main": "index.js",
   "directories": {
     "test": "tests"
@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build": "node build.mjs",
-    "check": "npm run typecheck && npm run test && npm run build"
+    "check": "npm run typecheck && npm run test && npm run build",
+    "zip": "npm run build && cd dist && rm -f ../inline-scribe.zip && zip -qr ../inline-scribe.zip . && cd .. && echo 'inline-scribe.zip ready for the Chrome Web Store'"
   },
   "keywords": [],
   "author": "",

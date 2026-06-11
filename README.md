@@ -20,20 +20,30 @@ ollama pull llama3.2         # ~2GB, runs fine on 8GB RAM
 ollama serve
 ```
 
-### 2. Load the extension in Chrome (first time only)
+### 2. Install the extension (first time only)
 
-v0.1 is loaded unpacked (Web Store submission is planned).
+**Option A — Chrome Web Store (recommended, no build tools needed):**
+install from the [Chrome Web Store listing](https://github.com/mk668a/inline-scribe/releases) *(submitted — the direct store link will replace this once review completes; until then grab `inline-scribe.zip` from the latest release, unzip, and load it as in Option B)*.
+
+**Option B — from source:**
 
 ```sh
 git clone https://github.com/mk668a/inline-scribe && cd inline-scribe
 npm install && npm run build
 ```
 
-Open `chrome://extensions` → enable **Developer mode** (top right) → **Load unpacked** → select the `dist/` folder.
+Open `chrome://extensions` → enable **Developer mode** (top right) → **Load unpacked** → select the `dist/` folder (or the unzipped release folder).
 
 ### 3. Write something, then press Alt+G
 
 Works in any text field in the browser — an email body, a GitHub comment box, a contact form. Write your text, keep the cursor in the field, and press **Alt+G**.
+
+Two more ways to trigger a check, Google-Translate style:
+
+- **Select text** → a small **✎ icon** pops up next to the selection — click it.
+- **Select text → right-click** → **Proofread selection — inline-scribe**.
+
+With a selection, only the selected part is checked and replaced — handy for one paragraph of a long email. It even works on text you *can't* edit (someone else's draft on a wiki, say): the corrected version is **copied to your clipboard** instead of written back.
 
 ### 4. Review each suggestion
 
@@ -53,6 +63,8 @@ For each fix, choose **✓** (accept) or **✕** (keep your wording). Or take ev
 | action | how |
 |---|---|
 | check the focused field | **Alt+G** (rebind at `chrome://extensions/shortcuts`) |
+| check only a selection | select it, then **Alt+G** / the **✎ icon** / right-click → **Proofread selection** |
+| proofread read-only text | select it → ✎ icon — the corrected text is copied to your clipboard |
 | accept one suggestion | **✓** button on the hunk |
 | keep your original wording | **✕** button on the hunk |
 | accept everything | **Accept all** |
@@ -124,6 +136,8 @@ Right-click the extension icon → **Options**:
 - **Model** — default `llama3.2`. Bigger model = better suggestions, same UI.
 - **System prompt** — the editing instruction. Rewrite it and inline-scribe becomes a
   translator, a tone-softener, or a de-corporate-izer — same review workflow.
+- **Selection icon** — untick to turn off the ✎ icon that appears when you select text
+  (Alt+G and the right-click menu keep working).
 
 ## Privacy model
 
@@ -139,7 +153,6 @@ Right-click the extension icon → **Options**:
   the same review UI — currently in origin trial, lands when stable
 - Firefox port (MV3 differences)
 - Rich-text write-back for `contenteditable`
-- Chrome Web Store listing
 
 ## Development
 

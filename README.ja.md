@@ -21,18 +21,28 @@ ollama serve
 
 ### 2. 拡張をChromeに入れる(初回のみ)
 
-v0.1は手動読み込みです(Web Store公開は予定あり)。
+**方法A — Chrome Web Store(推奨。ビルド不要):**
+[Chrome Web Storeの掲載ページ](https://github.com/mk668a/inline-scribe/releases)からインストール *(審査申請中 — 審査が通り次第ここがストアの直リンクになります。それまでは最新リリースの`inline-scribe.zip`をダウンロード→解凍→方法Bの手順で読み込んでください)*。
+
+**方法B — ソースから:**
 
 ```sh
 git clone https://github.com/mk668a/inline-scribe && cd inline-scribe
 npm install && npm run build
 ```
 
-`chrome://extensions`を開く → 右上の「デベロッパーモード」をON → 「パッケージ化されていない拡張機能を読み込む」→ `dist/`フォルダを選択。
+`chrome://extensions`を開く → 右上の「デベロッパーモード」をON → 「パッケージ化されていない拡張機能を読み込む」→ `dist/`フォルダ(またはzipを解凍したフォルダ)を選択。
 
 ### 3. 文章を書いて、Alt+Gを押す
 
 メールの本文、GitHubのコメント欄、問い合わせフォームなど、ブラウザ上のテキスト入力欄ならどこでも使えます。文章を書いたら、その入力欄にカーソルを置いたまま**Alt+G**。
+
+Google翻訳の拡張と同じ感覚で使えるトリガーも2つあります。
+
+- **文章を選択する** → 選択箇所のそばに小さな**✎アイコン**が出るのでクリック
+- **文章を選択して右クリック** → **「Proofread selection — inline-scribe」**
+
+選択して実行した場合は**選択した部分だけ**がチェック・置換されます(長いメールの1段落だけ直したいときに便利)。編集できないページの文章でも使えて、その場合は修正後の文章が**クリップボードにコピー**されます。
 
 ### 4. 修正案を1ヶ所ずつ確認する
 
@@ -52,6 +62,8 @@ npm install && npm run build
 | やりたいこと | 操作 |
 |---|---|
 | いま書いている欄をチェック | **Alt+G**(`chrome://extensions/shortcuts`で変更可) |
+| 選択した部分だけチェック | 選択してから**Alt+G** / **✎アイコン** / 右クリック→**Proofread selection** |
+| 編集できない文章を校正 | 選択→✎アイコン — 修正後の文章がクリップボードにコピーされる |
 | この修正を採用 | 修正箇所の**✓** |
 | ここは元のままにする | 修正箇所の**✕** |
 | 全部採用して反映 | **Accept all** |
@@ -111,6 +123,7 @@ npm install && npm run build
 - **Endpoint** — OpenAI互換APIなら何でも。Ollama / llama.cpp / LM Studio / vLLM、自分のAPIキーでクラウドに繋ぐのも可。既定は`http://127.0.0.1:11434/v1`
 - **Model** — 既定`llama3.2`。大きいモデルに替えれば提案の質だけが上がります
 - **System prompt** — モデルへの指示文。ここを書き換えると校正以外にも使えます。「日本語に翻訳して」にすれば翻訳機に、「敬語に直して」にすればトーン変換器に — レビューの流れはそのままで
+- **Selection icon** — 文章を選択したときに出る✎アイコンのON/OFF(OFFにしてもAlt+Gと右クリックメニューは使えます)
 
 ## プライバシー
 
@@ -123,6 +136,5 @@ npm install && npm run build
 - Chrome内蔵の**Proofreader API**(Gemini Nano)対応 — Ollamaすら入れずに使える選択肢として、同じレビューUIの裏に追加(現在origin trial中)
 - Firefox対応
 - contenteditableへのリッチテキスト書き戻し
-- Chrome Web Store公開
 
 ライセンスはMITです。

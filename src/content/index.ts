@@ -1,67 +1,186 @@
 /**
- * Content script: on trigger, read the focused editable, ask the background
+ * Content script: on trigger, read the target text (a focused editable, or a
+ * selection — including selections in read-only page text), ask the background
  * for a corrected version, and show a Track-Changes review panel anchored to
- * the field. The original text is never touched until the user applies.
+ * it. The original text is never touched until the user applies.
+ *
+ * Triggers:
+ *  - Alt+G command         → selection if any, else the whole focused field
+ *  - context-menu item     → current selection
+ *  - floating ✎ icon shown next to a fresh selection (Google-Translate style)
  */
 import { diffText, applyDecisions, changeIndices, type Hunk } from '../core/diff';
 
-type Editable = HTMLTextAreaElement | HTMLInputElement | HTMLElement;
+type FieldEl = HTMLTextAreaElement | HTMLInputElement;
+
+type Target =
+  | { kind: 'field'; el: FieldEl; start: number; end: number }
+  | { kind: 'rich'; el: HTMLElement; range: Range }
+  | { kind: 'page'; range: Range };
 
 let panel: HTMLElement | null = null;
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'inline-scribe:trigger') void run();
+  if (msg?.type === 'inline-scribe:trigger') void run(selectionTarget() ?? wholeFieldTarget());
+  if (msg?.type === 'inline-scribe:trigger-selection') void run(selectionTarget());
 });
 
-function focusedEditable(): Editable | null {
+/* ---------- targets ---------- */
+
+function isField(el: unknown): el is FieldEl {
+  return (
+    el instanceof HTMLTextAreaElement || (el instanceof HTMLInputElement && el.type === 'text')
+  );
+}
+
+function selectionTarget(): Target | null {
+  const ae = document.activeElement;
+  if (isField(ae) && ae.selectionStart != null && ae.selectionEnd != null) {
+    if (ae.selectionStart !== ae.selectionEnd) {
+      return { kind: 'field', el: ae, start: ae.selectionStart, end: ae.selectionEnd };
+    }
+  }
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0).cloneRange();
+  if (range.toString().trim() === '') return null;
+  const node = range.commonAncestorContainer;
+  const el = node instanceof HTMLElement ? node : node.parentElement;
+  if (el?.isContentEditable) return { kind: 'rich', el, range };
+  return { kind: 'page', range };
+}
+
+function wholeFieldTarget(): Target | null {
   const el = document.activeElement as HTMLElement | null;
-  if (!el) return null;
-  if (el instanceof HTMLTextAreaElement) return el;
-  if (el instanceof HTMLInputElement && el.type === 'text') return el;
-  if (el.isContentEditable) return el;
+  if (isField(el)) return { kind: 'field', el, start: 0, end: el.value.length };
+  if (el?.isContentEditable) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return { kind: 'rich', el, range };
+  }
   return null;
 }
 
-function readText(el: Editable): string {
-  return el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement
-    ? el.value
-    : (el.innerText ?? '');
+function targetText(t: Target): string {
+  return t.kind === 'field' ? t.el.value.slice(t.start, t.end) : t.range.toString();
 }
 
-function writeText(el: Editable, text: string): void {
-  if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
-    el.value = text;
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  } else {
-    el.innerText = text;
-    el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+function applyResult(t: Target, text: string): void {
+  if (t.kind === 'field') {
+    const v = t.el.value;
+    t.el.value = v.slice(0, t.start) + text + v.slice(t.end);
+    t.el.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (t.kind === 'rich') {
+    t.range.deleteContents();
+    t.range.insertNode(document.createTextNode(text));
+    t.el.dispatchEvent(new InputEvent('input', { bubbles: true }));
   }
+  // 'page' targets are read-only — handled by the copy path in renderReview.
 }
 
-async function run(): Promise<void> {
-  const el = focusedEditable();
-  if (!el) return;
-  const original = readText(el);
-  if (original.trim() === '') return;
+function anchorRect(t: Target): DOMRect {
+  if (t.kind === 'field') return t.el.getBoundingClientRect();
+  const r = t.range.getBoundingClientRect();
+  if (r.width || r.height) return r;
+  return t.kind === 'rich' ? t.el.getBoundingClientRect() : r;
+}
 
-  showPanel(el, renderStatus('Checking with your local model…'));
+/* ---------- selection icon (Google-Translate style) ---------- */
+
+let icon: HTMLElement | null = null;
+let iconTarget: Target | null = null;
+let selectionIconEnabled = true;
+
+void chrome.storage.sync.get('config').then((stored) => {
+  selectionIconEnabled =
+    (stored.config as { selectionIcon?: boolean } | undefined)?.selectionIcon ?? true;
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync' || !changes.config) return;
+  selectionIconEnabled =
+    (changes.config.newValue as { selectionIcon?: boolean } | undefined)?.selectionIcon ?? true;
+  if (!selectionIconEnabled) hideIcon();
+});
+
+document.addEventListener('mouseup', (e) => {
+  if (!selectionIconEnabled || panel) return;
+  if (icon && e.composedPath().includes(icon)) return;
+  // Let the browser finalize the selection before reading it.
+  setTimeout(() => {
+    const t = selectionTarget();
+    if (!t || targetText(t).trim().length < 2) {
+      hideIcon();
+      return;
+    }
+    showIcon(e.clientX, e.clientY, t);
+  }, 0);
+});
+
+document.addEventListener('mousedown', (e) => {
+  if (icon && !e.composedPath().includes(icon)) hideIcon();
+});
+
+function showIcon(clientX: number, clientY: number, target: Target): void {
+  hideIcon();
+  const host = document.createElement('div');
+  const shadow = host.attachShadow({ mode: 'open' });
+  const style = document.createElement('style');
+  style.textContent = ICON_CSS;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'scribe-icon';
+  btn.textContent = '✎';
+  btn.title = 'Proofread with inline-scribe';
+  // mousedown (not click): act before the page clears the selection, and
+  // preventDefault so the field keeps focus and its selection offsets.
+  btn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const t = iconTarget;
+    hideIcon();
+    void run(t);
+  });
+  shadow.append(style, btn);
+  document.body.appendChild(host);
+  btn.style.left = `${clientX + window.scrollX + 8}px`;
+  btn.style.top = `${clientY + window.scrollY + 12}px`;
+  icon = host;
+  iconTarget = target;
+}
+
+function hideIcon(): void {
+  icon?.remove();
+  icon = null;
+  iconTarget = null;
+}
+
+/* ---------- check flow ---------- */
+
+async function run(target: Target | null): Promise<void> {
+  if (!target) return;
+  hideIcon();
+  const original = targetText(target);
+  if (original.trim() === '') return;
+  const rect = anchorRect(target);
+
+  showPanel(rect, renderStatus('Checking with your local model…'));
   const reply = (await chrome.runtime.sendMessage({
     type: 'inline-scribe:check',
     text: original,
   })) as { ok: boolean; corrected?: string; model?: string; error?: string };
 
   if (!reply?.ok || reply.corrected == null) {
-    showPanel(el, renderStatus(`⚠ ${reply?.error ?? 'no response from the extension'}`, true));
+    showPanel(rect, renderStatus(`⚠ ${reply?.error ?? 'no response from the extension'}`, true));
     return;
   }
   const hunks = diffText(original, reply.corrected);
   const changes = changeIndices(hunks);
   if (changes.length === 0) {
-    showPanel(el, renderStatus(`✓ Nothing to fix — checked by ${reply.model}, locally.`));
+    showPanel(rect, renderStatus(`✓ Nothing to fix — checked by ${reply.model}, locally.`));
     setTimeout(closePanel, 2500);
     return;
   }
-  showPanel(el, renderReview(el, original, hunks, changes, reply.model ?? 'local model'));
+  showPanel(rect, renderReview(target, rect, hunks, changes, reply.model ?? 'local model'));
 }
 
 /* ---------- UI ---------- */
@@ -74,14 +193,15 @@ function renderStatus(text: string, isError = false): HTMLElement {
 }
 
 function renderReview(
-  el: Editable,
-  original: string,
+  target: Target,
+  rect: DOMRect,
   hunks: Hunk[],
   changes: number[],
   model: string,
 ): HTMLElement {
   // null = pending (treated as reject on apply), true/false = decided.
   const decisions = new Map<number, boolean | null>(changes.map((i) => [i, null]));
+  const readOnly = target.kind === 'page';
 
   const root = document.createElement('div');
   const text = document.createElement('div');
@@ -127,19 +247,33 @@ function renderReview(
   };
   refresh();
 
+  // Editable targets: write back. Read-only page text: copy to clipboard.
+  const finish = (result: string) => {
+    if (readOnly) {
+      navigator.clipboard.writeText(result).then(
+        () => {
+          showPanel(rect, renderStatus('✓ Corrected text copied to clipboard'));
+          setTimeout(closePanel, 1800);
+        },
+        () => showPanel(rect, renderStatus('⚠ Could not write to the clipboard', true)),
+      );
+    } else {
+      applyResult(target, result);
+      closePanel();
+    }
+  };
+
   const bar = document.createElement('div');
   bar.className = 'scribe-bar';
   const note = document.createElement('span');
   note.className = 'scribe-note';
   note.textContent = `${changes.length} suggestion(s) · ${model} · nothing left your machine`;
-  const apply = button('Apply accepted', 'scribe-apply', () => {
+  const apply = button(readOnly ? 'Copy accepted' : 'Apply accepted', 'scribe-apply', () => {
     const accepted = hunks.map((_, i) => decisions.get(i) === true);
-    writeText(el, applyDecisions(hunks, accepted));
-    closePanel();
+    finish(applyDecisions(hunks, accepted));
   });
-  const acceptAll = button('Accept all', 'scribe-apply scribe-all', () => {
-    writeText(el, applyDecisions(hunks, hunks.map(() => true)));
-    closePanel();
+  const acceptAll = button(readOnly ? 'Copy all fixed' : 'Accept all', 'scribe-apply scribe-all', () => {
+    finish(applyDecisions(hunks, hunks.map(() => true)));
   });
   const dismiss = button('Esc', 'scribe-dismiss', closePanel);
   bar.append(note, acceptAll, apply, dismiss);
@@ -184,7 +318,20 @@ const CSS = `
 .scribe-error { color: #b3261e; }
 `;
 
-function showPanel(el: Editable, content: HTMLElement): void {
+const ICON_CSS = `
+:host { all: initial; }
+.scribe-icon {
+  position: absolute; z-index: 2147483647; box-sizing: border-box;
+  width: 26px; height: 26px; padding: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font: 14px/1 -apple-system, system-ui, sans-serif; color: #2741cc;
+  background: #fff; border: 1px solid #d0d0e0; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(20,20,60,.22);
+}
+.scribe-icon:hover { background: #f0f2ff; }
+`;
+
+function showPanel(rect: DOMRect, content: HTMLElement): void {
   closePanel();
   const host = document.createElement('div');
   const shadow = host.attachShadow({ mode: 'open' });
@@ -196,10 +343,9 @@ function showPanel(el: Editable, content: HTMLElement): void {
   shadow.append(style, box);
   document.body.appendChild(host);
 
-  const r = el.getBoundingClientRect();
-  box.style.left = `${Math.max(8, r.left + window.scrollX)}px`;
-  box.style.top = `${r.bottom + window.scrollY + 6}px`;
-  box.style.minWidth = `${Math.min(Math.max(r.width, 280), 640)}px`;
+  box.style.left = `${Math.max(8, rect.left + window.scrollX)}px`;
+  box.style.top = `${rect.bottom + window.scrollY + 6}px`;
+  box.style.minWidth = `${Math.min(Math.max(rect.width, 280), 640)}px`;
 
   panel = host;
   document.addEventListener('keydown', onEsc, true);

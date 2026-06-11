@@ -11,6 +11,8 @@
       button { margin-top: 16px; padding: 8px 16px; border: none; border-radius: 6px; background: #2741cc; color: #fff; cursor: pointer; }
       #saved { margin-left: 10px; color: #1b6e2a; }
       .hint { color: #6b6b80; font-size: 12px; }
+      label.inline { font-weight: 400; }
+      label.inline input { width: auto; margin-right: 6px; }
     </style>
   </head>
   <body>
@@ -28,6 +30,8 @@
     <input id="apiKey" type="password" />
     <label for="systemPrompt">System prompt</label>
     <textarea id="systemPrompt"></textarea>
+    <label class="inline"><input type="checkbox" id="selectionIcon" checked />
+      Show a ✎ proofread icon when you select text (Google-Translate style)</label>
     <button id="save">Save</button><span id="saved"></span>
     <script src="options.js"></script>
   </body>

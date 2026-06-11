@@ -9,6 +9,8 @@ async function load(): Promise<void> {
   $('model').value = cfg.model;
   $('apiKey').value = cfg.apiKey ?? '';
   $('systemPrompt').value = cfg.systemPrompt;
+  ($('selectionIcon') as HTMLInputElement).checked =
+    (stored.config as { selectionIcon?: boolean } | undefined)?.selectionIcon ?? true;
 }
 
 document.getElementById('save')!.addEventListener('click', async () => {
@@ -17,6 +19,7 @@ document.getElementById('save')!.addEventListener('click', async () => {
     model: $('model').value.trim() || DEFAULT_CONFIG.model,
     apiKey: $('apiKey').value.trim() || undefined,
     systemPrompt: $('systemPrompt').value.trim() || DEFAULT_CONFIG.systemPrompt,
+    selectionIcon: ($('selectionIcon') as HTMLInputElement).checked,
   };
   await chrome.storage.sync.set({ config });
   document.getElementById('saved')!.textContent = 'saved ✓';

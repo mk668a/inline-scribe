@@ -11,4 +11,5 @@ await Promise.all([
 ]);
 await cp('manifest.json', 'dist/manifest.json');
 await cp('src/options/options.html', 'dist/options.html');
+await cp('icons', 'dist/icons', { recursive: true });
 console.log('dist/ ready — load it via chrome://extensions → Load unpacked');

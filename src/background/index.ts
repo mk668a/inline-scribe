@@ -42,6 +42,21 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.config) void syncOriginRule();
 });
 
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'check-selection',
+    title: 'Proofread selection — inline-scribe',
+    contexts: ['selection'],
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== 'check-selection' || tab?.id == null) return;
+  chrome.tabs.sendMessage(tab.id, { type: 'inline-scribe:trigger-selection' }).catch(() => {
+    // No content script on this page (chrome:// etc.) — nothing to do.
+  });
+});
+
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== 'check-text') return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
