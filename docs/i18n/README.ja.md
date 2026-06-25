@@ -2,7 +2,7 @@
 
 **ブラウザで書いた文章を、PC内で動くAIが校正してくれるChrome拡張です。** 入力欄で**Alt+G**を押すと修正案が出て、1ヶ所ずつ「採用する/しない」を選んで反映できます。文章がPCの外に送信されることはありません。
 
-[English README](README.md)
+[**▶ Chrome Web Store からインストール**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · [English README](README.en.md) · [↑ repo home](../../README.md)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/screenshot.png" alt="誤字を含むtextareaの下にinline-scribeのレビューパネルが開き、削除は赤の打ち消し線、追加は緑で表示され、修正ごとに採用・却下ボタンが並んでいる" width="100%"></p>
@@ -22,7 +22,7 @@ ollama serve
 ### 2. 拡張をChromeに入れる(初回のみ)
 
 **方法A — Chrome Web Store(推奨。ビルド不要):**
-[Chrome Web Storeの掲載ページ](https://github.com/mk668a/inline-scribe/releases)からインストール *(審査申請中 — 審査が通り次第ここがストアの直リンクになります。それまでは最新リリースの`inline-scribe.zip`をダウンロード→解凍→方法Bの手順で読み込んでください)*。
+[Chrome Web Storeの掲載ページ](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm)からインストール。
 
 **方法B — ソースから:**
 
