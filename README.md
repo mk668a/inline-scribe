@@ -2,7 +2,7 @@
 
 **A Chrome extension that proofreads what you write in the browser, using an AI that runs on your own computer.** Press **Alt+G** in any text field to get suggestions, then accept or reject each fix individually. Your text never leaves your machine. By default it uses Chrome's built-in AI (Gemini Nano) — nothing to install, no server to run.
 
-[**▶ Install from the Chrome Web Store**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · [日本語版README](docs/i18n/README.ja.md)
+[**▶ Install from the Chrome Web Store**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · **English** · [日本語](docs/i18n/README.ja.md) · [简体中文](docs/i18n/README.zh-CN.md) · [한국어](docs/i18n/README.ko.md) · [Español](docs/i18n/README.es.md) · [Français](docs/i18n/README.fr.md)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/screenshot.png" alt="A textarea with typos, and below it the inline-scribe review panel: deletions struck through in red, insertions in green, each with accept/reject buttons, checked by llama3.2 locally" width="100%">

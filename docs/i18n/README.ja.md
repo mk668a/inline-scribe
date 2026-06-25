@@ -2,7 +2,7 @@
 
 **ブラウザで書いた文章を、PC内で動くAIが校正してくれるChrome拡張です。** 入力欄で**Alt+G**を押すと修正案が出て、1ヶ所ずつ「採用する/しない」を選んで反映できます。文章がPCの外に送信されることはありません。既定ではChrome内蔵AI(Gemini Nano)を使うので、インストールも常駐サーバーも不要です。
 
-[**▶ Chrome Web Store からインストール**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · [English README](../../README.md)
+[**▶ Chrome Web Store からインストール**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · [English](../../README.md) · **日本語** · [简体中文](README.zh-CN.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/mk668a/inline-scribe/main/docs/screenshot.png" alt="誤字を含むtextareaの下にinline-scribeのレビューパネルが開き、削除は赤の打ち消し線、追加は緑で表示され、修正ごとに採用・却下ボタンが並んでいる" width="100%"></p>
