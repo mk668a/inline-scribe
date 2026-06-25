@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "inline-scribe",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Proofread what you write with a local AI (Ollama). Accept or reject each fix one by one. Nothing leaves your machine.",
-  "permissions": ["storage", "activeTab", "declarativeNetRequest", "contextMenus"],
+  "permissions": ["storage", "activeTab", "declarativeNetRequest", "contextMenus", "offscreen"],
+  "minimum_chrome_version": "138",
   "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
   "background": { "service_worker": "background.js" },
   "content_scripts": [

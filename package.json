@@ -1,10 +1,18 @@
 {
   "name": "inline-scribe",
-  "version": "0.2.0",
-  "description": "Chrome extension that proofreads what you write in the browser using a local AI (Ollama). Accept or reject each fix one by one. Nothing leaves your machine.",
+  "version": "1.0.0",
+  "description": "Chrome extension that proofreads what you write in the browser using on-device AI (Chrome's built-in Gemini Nano, or your own Ollama). Accept or reject each fix one by one. Nothing leaves your machine.",
   "main": "index.js",
   "directories": {
     "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mk668a/inline-scribe.git"
+  },
+  "homepage": "https://github.com/mk668a/inline-scribe#readme",
+  "bugs": {
+    "url": "https://github.com/mk668a/inline-scribe/issues"
   },
   "scripts": {
     "test": "vitest run",
@@ -13,8 +21,18 @@
     "check": "npm run typecheck && npm run test && npm run build",
     "zip": "npm run build && cd dist && rm -f ../inline-scribe.zip && zip -qr ../inline-scribe.zip . && cd .. && echo 'inline-scribe.zip ready for the Chrome Web Store'"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "chrome-extension",
+    "proofreader",
+    "grammar",
+    "local-llm",
+    "ollama",
+    "gemini-nano",
+    "on-device-ai",
+    "privacy",
+    "track-changes"
+  ],
+  "author": "mk668a",
   "license": "MIT",
   "type": "module",
   "devDependencies": {

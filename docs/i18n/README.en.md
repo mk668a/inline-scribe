@@ -1,6 +1,6 @@
 # inline-scribe
 
-**A Chrome extension that proofreads what you write in the browser, using an AI that runs on your own computer.** Press **Alt+G** in any text field to get suggestions, then accept or reject each fix individually. Your text never leaves your machine.
+**A Chrome extension that proofreads what you write in the browser, using an AI that runs on your own computer.** Press **Alt+G** in any text field to get suggestions, then accept or reject each fix individually. Your text never leaves your machine. By default it uses Chrome's built-in AI (Gemini Nano) — nothing to install, no server to run.
 
 [**▶ Install from the Chrome Web Store**](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm) · [日本語版README](README.ja.md) · [↑ repo home](../../README.md)
 
@@ -10,17 +10,7 @@
 
 ## How to use
 
-### 1. Install Ollama (first time only)
-
-This runs the AI that checks your text, on your own machine. Skip if you already use Ollama.
-
-```sh
-brew install ollama          # or https://ollama.com/download
-ollama pull llama3.2         # ~2GB, runs fine on 8GB RAM
-ollama serve
-```
-
-### 2. Install the extension (first time only)
+### 1. Install the extension
 
 **Option A — Chrome Web Store (recommended, no build tools needed):**
 install from the [Chrome Web Store listing](https://chromewebstore.google.com/detail/inline-scribe/kmcgponcdfdpbmkahiolhnignkkpnkgm).
@@ -33,6 +23,24 @@ npm install && npm run build
 ```
 
 Open `chrome://extensions` → enable **Developer mode** (top right) → **Load unpacked** → select the `dist/` folder (or the unzipped release folder).
+
+### 2. Pick where the AI runs (it works out of the box)
+
+By default inline-scribe uses **Chrome's built-in Gemini Nano** — there is nothing to
+install and no server to start. The first check downloads the model once (Chrome 138+,
+~22 GB free disk). If your device can't run it, the panel tells you and you can switch
+backends.
+
+Prefer a bigger or custom model? Open the extension's **Options**, switch the backend to
+**Local server**, and point it at any OpenAI-compatible endpoint you run yourself:
+
+```sh
+brew install ollama          # or https://ollama.com/download
+ollama pull llama3.2         # ~2GB, runs fine on 8GB RAM
+ollama serve
+```
+
+Either way the maintainer pays nothing and sees nothing — your text stays on your machine.
 
 ### 3. Write something, then press Alt+G
 
@@ -79,7 +87,7 @@ For each fix, choose **✓** (accept) or **✕** (keep your wording). Or take ev
 | apply only what you accepted | **Apply accepted** (pending suggestions are discarded) |
 | cancel, leave text untouched | **Esc** |
 
-Works in `<textarea>`, text `<input>`, and `contenteditable` editors (Gmail, Notion-style editors — written back as plain text in v0.1).
+Works in `<textarea>`, text `<input>`, and `contenteditable` editors (Gmail, Notion-style editors — write-back goes through the editor's own insert command, so surrounding formatting and undo are preserved).
 
 ## Why does this need to exist?
 
@@ -106,8 +114,9 @@ That interface, on top of a model you own, is the whole product:
 you press Alt+G in a text field
         │
         ▼
-the extension sends your text to YOUR endpoint     ← default: Ollama on 127.0.0.1
-(an OpenAI-compatible /chat/completions API)          model: llama3.2 (~2GB, free)
+your text goes to an AI that runs on your machine  ← default: Chrome's built-in
+(built-in Gemini Nano, or a local OpenAI-compatible    Gemini Nano (no install);
+ endpoint like Ollama if you switch backends)          or your own Ollama endpoint
         │
         ▼
 the model returns corrected prose — just text
@@ -139,9 +148,12 @@ no config file.
 
 Right-click the extension icon → **Options**:
 
-- **Endpoint** — any OpenAI-compatible server: Ollama, llama.cpp, LM Studio, vLLM, or a
-  cloud endpoint with your own API key. Default `http://127.0.0.1:11434/v1`.
-- **Model** — default `llama3.2`. Bigger model = better suggestions, same UI.
+- **Backend** — **Chrome built-in AI (Gemini Nano)** (default, nothing to install) or
+  **Local server** (bring your own endpoint). The review UI is identical either way.
+- **Endpoint** *(Local server only)* — any OpenAI-compatible server: Ollama, llama.cpp,
+  LM Studio, vLLM, or a cloud endpoint with your own API key. Default
+  `http://127.0.0.1:11434/v1`.
+- **Model** *(Local server only)* — default `llama3.2`. Bigger model = better suggestions, same UI.
 - **System prompt** — the editing instruction. Rewrite it and inline-scribe becomes a
   translator, a tone-softener, or a de-corporate-izer — same review workflow.
 - **Selection icon** — untick to turn off the ✎ icon that appears when you select text
@@ -153,23 +165,24 @@ Right-click the extension icon → **Options**:
 
 ## Privacy model
 
-- Your text goes to **the endpoint you configured and nowhere else**. With the default
-  (localhost Ollama) it never leaves your machine.
+- With the **default backend** the model runs on-device (Chrome's built-in Gemini Nano):
+  your text never leaves your machine. With the **Local server** backend it goes to the
+  endpoint you configured and nowhere else.
 - No analytics, no accounts, no telemetry, nothing stored except your settings
   (`chrome.storage.sync`).
 - The maintainer pays for nothing and can see nothing — this project has no server.
 
 ## Roadmap
 
-- **Chrome's built-in Proofreader API** (Gemini Nano) as a zero-install backend behind
-  the same review UI — currently in origin trial, lands when stable
+- **Chrome's built-in Proofreader API** (Gemini Nano) as an alternative on-device backend
+  with first-class corrections — adopted behind the same review UI once it leaves origin
+  trial. (The default on-device path today is the GA Prompt API.)
 - Firefox port (MV3 differences)
-- Rich-text write-back for `contenteditable`
 
 ## Development
 
 ```sh
-npm test            # 18 unit tests for the diff core (no LLM needed)
+npm test            # 29 unit tests for the diff + checker core (no LLM needed)
 npm run typecheck
 npm run build       # esbuild → dist/
 ```

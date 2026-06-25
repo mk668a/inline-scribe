@@ -4,7 +4,13 @@
  *  2. Run checker requests (fetch happens here, not in the page, so the
  *     call to 127.0.0.1 needs no site CORS and never mixes with page CSP).
  */
-import { OllamaChecker, DEFAULT_CONFIG, CheckerError, type CheckerConfig } from '../core/checker';
+import {
+  OllamaChecker,
+  DEFAULT_CONFIG,
+  CheckerError,
+  mergeConfig,
+  type CheckerConfig,
+} from '../core/checker';
 
 /**
  * Ollama rejects requests carrying a chrome-extension:// Origin with 403
@@ -72,20 +78,65 @@ interface CheckRequest {
   text: string;
 }
 
+/**
+ * The Prompt API runs in the offscreen document (the service worker has no
+ * document context). Create it on demand and reuse it across checks.
+ */
+let creatingOffscreen: Promise<void> | null = null;
+async function ensureOffscreen(): Promise<void> {
+  if (await chrome.offscreen.hasDocument()) return;
+  if (!creatingOffscreen) {
+    creatingOffscreen = chrome.offscreen
+      .createDocument({
+        url: 'offscreen.html',
+        reasons: [chrome.offscreen.Reason.DOM_SCRAPING],
+        justification:
+          'Run the on-device Gemini Nano (Prompt API), which needs a document context the service worker lacks.',
+      })
+      .finally(() => {
+        creatingOffscreen = null;
+      });
+  }
+  await creatingOffscreen;
+}
+
+interface CheckReply {
+  ok: boolean;
+  corrected?: string;
+  model?: string;
+  error?: string;
+}
+
+async function runCheck(config: CheckerConfig, text: string): Promise<CheckReply> {
+  try {
+    if (config.backend === 'prompt-api') {
+      await ensureOffscreen();
+      const reply = (await chrome.runtime.sendMessage({
+        type: 'inline-scribe:promptapi-check',
+        target: 'offscreen',
+        text,
+        config,
+      })) as CheckReply;
+      return reply?.ok
+        ? { ok: true, corrected: reply.corrected, model: 'Chrome built-in AI (Gemini Nano)' }
+        : { ok: false, error: reply?.error ?? 'no response from the on-device model' };
+    }
+    const corrected = await new OllamaChecker(config).check(text);
+    return { ok: true, corrected, model: config.model };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof CheckerError ? err.message : `unexpected error: ${String(err)}`,
+    };
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg: CheckRequest, _sender, sendResponse) => {
   if (msg?.type !== 'inline-scribe:check') return undefined;
   (async () => {
     const stored = await chrome.storage.sync.get('config');
-    const config: CheckerConfig = { ...DEFAULT_CONFIG, ...(stored.config ?? {}) };
-    try {
-      const corrected = await new OllamaChecker(config).check(msg.text);
-      sendResponse({ ok: true, corrected, model: config.model });
-    } catch (err) {
-      sendResponse({
-        ok: false,
-        error: err instanceof CheckerError ? err.message : `unexpected error: ${String(err)}`,
-      });
-    }
+    const config = mergeConfig(stored.config as Partial<CheckerConfig> | undefined);
+    sendResponse(await runCheck(config, msg.text));
   })();
   return true; // keep the message channel open for the async response
 });

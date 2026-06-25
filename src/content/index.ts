@@ -19,10 +19,17 @@ type Target =
   | { kind: 'page'; range: Range };
 
 let panel: HTMLElement | null = null;
+// The "Checking…" element while a request is in flight, so download-progress
+// messages from the on-device backend can update it in place.
+let pendingStatus: HTMLElement | null = null;
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === 'inline-scribe:trigger') void run(selectionTarget() ?? wholeFieldTarget());
   if (msg?.type === 'inline-scribe:trigger-selection') void run(selectionTarget());
+  if (msg?.type === 'inline-scribe:download-progress' && pendingStatus) {
+    const pct = Math.round((msg.progress ?? 0) * 100);
+    pendingStatus.textContent = `One-time on-device model download… ${pct}%`;
+  }
 });
 
 /* ---------- targets ---------- */
@@ -71,8 +78,19 @@ function applyResult(t: Target, text: string): void {
     t.el.value = v.slice(0, t.start) + text + v.slice(t.end);
     t.el.dispatchEvent(new Event('input', { bubbles: true }));
   } else if (t.kind === 'rich') {
-    t.range.deleteContents();
-    t.range.insertNode(document.createTextNode(text));
+    // Re-select the target and let the editor's own insertText command replace
+    // it. Unlike deleteContents()+textNode this keeps surrounding formatting,
+    // feeds the editor's undo stack, and lets frameworks (Lexical, ProseMirror,
+    // Draft) observe the change. Fall back to raw DOM if the editor blocks it.
+    t.el.focus();
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(t.range);
+    const ok = document.execCommand('insertText', false, text);
+    if (!ok) {
+      t.range.deleteContents();
+      t.range.insertNode(document.createTextNode(text));
+    }
     t.el.dispatchEvent(new InputEvent('input', { bubbles: true }));
   }
   // 'page' targets are read-only — handled by the copy path in renderReview.
@@ -163,11 +181,13 @@ async function run(target: Target | null): Promise<void> {
   if (original.trim() === '') return;
   const rect = anchorRect(target);
 
-  showPanel(rect, renderStatus('Checking with your local model…'));
+  pendingStatus = renderStatus('Checking on-device…');
+  showPanel(rect, pendingStatus);
   const reply = (await chrome.runtime.sendMessage({
     type: 'inline-scribe:check',
     text: original,
   })) as { ok: boolean; corrected?: string; model?: string; error?: string };
+  pendingStatus = null;
 
   if (!reply?.ok || reply.corrected == null) {
     showPanel(rect, renderStatus(`⚠ ${reply?.error ?? 'no response from the extension'}`, true));
@@ -358,5 +378,6 @@ function onEsc(e: KeyboardEvent): void {
 function closePanel(): void {
   panel?.remove();
   panel = null;
+  pendingStatus = null;
   document.removeEventListener('keydown', onEsc, true);
 }

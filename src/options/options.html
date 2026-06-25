@@ -11,6 +11,7 @@
       button { margin-top: 16px; padding: 8px 16px; border: none; border-radius: 6px; background: #2741cc; color: #fff; cursor: pointer; }
       #saved { margin-left: 10px; color: #1b6e2a; }
       .hint { color: #6b6b80; font-size: 12px; }
+      select { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #c8c8d8; border-radius: 6px; font: inherit; }
       label.inline { font-weight: 400; }
       label.inline input { width: auto; margin-right: 6px; }
     </style>
@@ -18,16 +19,23 @@
   <body>
     <h1>inline-scribe</h1>
     <p class="hint">
-      Bring your own inference: an OpenAI-compatible endpoint you run or pay for yourself
-      (Ollama, llama.cpp, LM Studio, vLLM…). The default talks to a local Ollama.
-      The maintainer never pays — and never sees — your text.
+      Proofreading runs on your machine. Pick where the model lives. The maintainer
+      never pays — and never sees — your text.
     </p>
-    <label for="endpoint">Endpoint</label>
-    <input id="endpoint" placeholder="http://127.0.0.1:11434/v1" />
-    <label for="model">Model</label>
-    <input id="model" placeholder="llama3.2" />
-    <label for="apiKey">API key (optional — only for non-local endpoints)</label>
-    <input id="apiKey" type="password" />
+    <label for="backend">Backend</label>
+    <select id="backend">
+      <option value="prompt-api">Chrome built-in AI (Gemini Nano) — no install</option>
+      <option value="ollama">Local server (Ollama, llama.cpp, LM Studio…)</option>
+    </select>
+    <p class="hint" id="backend-hint"></p>
+    <div id="ollama-fields">
+      <label for="endpoint">Endpoint</label>
+      <input id="endpoint" placeholder="http://127.0.0.1:11434/v1" />
+      <label for="model">Model</label>
+      <input id="model" placeholder="llama3.2" />
+      <label for="apiKey">API key (optional — only for non-local endpoints)</label>
+      <input id="apiKey" type="password" />
+    </div>
     <label for="systemPrompt">System prompt</label>
     <textarea id="systemPrompt"></textarea>
     <label class="inline"><input type="checkbox" id="selectionIcon" checked />

@@ -1,0 +1,9 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>inline-scribe offscreen</title>
+<!--
+  Hidden, non-interactive document. It exists only to give the Prompt API
+  (`LanguageModel`) a window/document context, which the MV3 service worker
+  does not have. No UI, no network — on-device inference only.
+-->
+<script src="offscreen.js"></script>
