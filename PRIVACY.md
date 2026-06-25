@@ -12,6 +12,8 @@ project has no server.
   in the extension's options** — by default `http://127.0.0.1:11434/v1`, a local Ollama
   server running on your own machine.
 - With the default configuration, your text **never leaves your computer**.
+- The optional **Harper pre-pass** (off by default) runs entirely on-device as
+  WebAssembly — it makes no network requests, so enabling it sends your text nowhere.
 - If you configure a remote endpoint yourself (e.g. a cloud API with your own key),
   your text goes to that endpoint and nowhere else. That choice, and that relationship,
   is between you and your provider.

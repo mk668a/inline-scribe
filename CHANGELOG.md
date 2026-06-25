@@ -4,6 +4,20 @@ All notable changes to inline-scribe are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-06-25
+
+### Added
+- **Optional Harper pre-pass** — turn it on in Options to fix mechanical mistakes
+  with [Harper](https://writewithharper.com), a fast, rule-based, fully-local
+  grammar engine, *before* the AI runs. Harper handles the deterministic stuff
+  (capitalization, punctuation, spacing, subject-verb agreement, repeated words)
+  instantly and offline; the AI then handles fluency and word choice. Only
+  high-confidence, single-suggestion mechanical fixes are auto-applied — lexical
+  guesses (spelling, typos, word choice) are deliberately left to the AI, which has
+  the full context. Off by default. Stays on-device: Harper is WebAssembly that runs
+  in the offscreen document, fetched from the extension's own files only when enabled,
+  so the built-in-AI path never loads it.
+
 ## [1.0.0] - 2026-06-25
 
 The zero-install release: inline-scribe now works the moment you install it, with
@@ -46,6 +60,7 @@ no server to run.
 - Deterministic word-level diff core with per-hunk accept/reject.
 - Zero-config Ollama support via `declarativeNetRequest` Origin-header stripping.
 
+[1.1.0]: https://github.com/mk668a/inline-scribe/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mk668a/inline-scribe/releases/tag/v1.0.0
 [0.2.0]: https://github.com/mk668a/inline-scribe/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mk668a/inline-scribe/releases/tag/v0.1.0

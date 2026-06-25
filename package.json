@@ -1,6 +1,6 @@
 {
   "name": "inline-scribe",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Chrome extension that proofreads what you write in the browser using on-device AI (Chrome's built-in Gemini Nano, or your own Ollama). Accept or reject each fix one by one. Nothing leaves your machine.",
   "main": "index.js",
   "directories": {
@@ -41,5 +41,8 @@
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
     "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "harper.js": "^2.4.0"
   }
 }

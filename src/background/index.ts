@@ -107,21 +107,38 @@ interface CheckReply {
   error?: string;
 }
 
+/**
+ * Optional Harper pre-pass: fix the deterministic, mechanical mistakes locally
+ * (and instantly) before the model runs, so the model only handles the rest.
+ * Harper's WASM lives in the offscreen document. Best-effort — if it can't run,
+ * fall back to the original text rather than failing the whole check.
+ */
+async function harperPrePass(text: string): Promise<string> {
+  await ensureOffscreen();
+  const reply = (await chrome.runtime.sendMessage({
+    type: 'inline-scribe:harper-prepass',
+    target: 'offscreen',
+    text,
+  })) as { ok?: boolean; text?: string } | undefined;
+  return reply?.ok && typeof reply.text === 'string' ? reply.text : text;
+}
+
 async function runCheck(config: CheckerConfig, text: string): Promise<CheckReply> {
   try {
+    const input = config.harperPrePass ? await harperPrePass(text) : text;
     if (config.backend === 'prompt-api') {
       await ensureOffscreen();
       const reply = (await chrome.runtime.sendMessage({
         type: 'inline-scribe:promptapi-check',
         target: 'offscreen',
-        text,
+        text: input,
         config,
       })) as CheckReply;
       return reply?.ok
         ? { ok: true, corrected: reply.corrected, model: 'Chrome built-in AI (Gemini Nano)' }
         : { ok: false, error: reply?.error ?? 'no response from the on-device model' };
     }
-    const corrected = await new OllamaChecker(config).check(text);
+    const corrected = await new OllamaChecker(config).check(input);
     return { ok: true, corrected, model: config.model };
   } catch (err) {
     return {

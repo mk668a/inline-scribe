@@ -16,6 +16,12 @@ export interface CheckerConfig {
   systemPrompt: string;
   apiKey?: string;
   timeoutMs?: number;
+  /**
+   * Run Harper's local, rule-based pre-pass before the model (opt-in, default
+   * off). Fixes mechanical mistakes instantly and offline; the model handles
+   * the rest. See src/core/harper.ts.
+   */
+  harperPrePass?: boolean;
 }
 
 export interface Checker {
@@ -31,6 +37,7 @@ export const DEFAULT_CONFIG: CheckerConfig = {
     'Keep the original meaning, tone, formatting and line breaks. ' +
     'Reply with ONLY the corrected text — no preamble, no quotes, no explanations.',
   timeoutMs: 60_000,
+  harperPrePass: false,
 };
 
 /**
